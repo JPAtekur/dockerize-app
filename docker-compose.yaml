@@ -1,0 +1,30 @@
+version: '3'
+services:
+  mydb:
+    image: mysql:8
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=test_db
+    healthcheck:
+        test: "/usr/bin/mysql --user=root --password=$$MYSQL_ROOT_PASSWORD --execute \"SHOW DATABASES;\""
+        interval: 30s
+        timeout: 40s
+        retries: 10
+  s2:
+    image: atekur/service-two:1.0
+    ports:
+      - 8086:8086
+    environment:
+      - host=mydb
+    depends_on:
+      mydb:
+        condition: service_healthy
+  
+  s1:
+    image: atekur/service-one:1.0
+    ports:
+      - 8085:8085
+    depends_on:
+      - s2
